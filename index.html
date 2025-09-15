@@ -395,12 +395,12 @@
           gif.addFrame(out, {copy:true, delay});
 
           const pct = Math.round(((i+1)/totalFrames)*100);
-          ovText.textContent = `Recording GIF… ${pct}%`;
+          ovText.textContent = `Attck… ${pct}%`;
           ovBar.style.width = pct + '%';
           await new Promise(r=>setTimeout(r, delay));
         }
 
-        ovText.textContent = 'Encoding GIF…';
+        ovText.textContent = 'Attack...';
         gif.on('finished', function(blob){
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
