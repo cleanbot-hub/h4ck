@@ -189,7 +189,7 @@
     </section>
 
     <section class="footer">
-      <div class="foot-note">© <span id="yr"></span> H4CK3R MODE · built with <span style="color:var(--neon)">sj.exe</span></div>
+      <div class="foot-note">© <span id="yr"></span> H4CK3R MODE · built with <span style="color:var(--neon)">HTML + JS</span></div>
       <div class="mini">Tip: Press <b>`</b> (backtick) to toggle the matrix rain.</div>
       <div class="btn-row">
         <button class="btn" onclick="captureWallpaper('desktop')">Save as Wallpaper 16:9</button>
@@ -360,10 +360,22 @@
       out.width = target.w; out.height = target.h;
       const oc = out.getContext('2d');
 
+      // Ensure worker blob URL to avoid cross-origin restrictions on GitHub Pages
+      if(!window.__gifWorkerURL){
+        try{
+          const resp = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js', {mode:'cors'});
+          const txt = await resp.text();
+          const blob = new Blob([txt], {type:'application/javascript'});
+          window.__gifWorkerURL = URL.createObjectURL(blob);
+        }catch(err){
+          throw new Error('Failed to load GIF worker: '+ err.message);
+        }
+      }
+
       const gif = new GIF({
         workers: 2,
         quality: 10,
-        workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js',
+        workerScript: window.__gifWorkerURL,
         width: target.w,
         height: target.h
       });
