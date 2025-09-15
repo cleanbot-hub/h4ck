@@ -109,6 +109,7 @@
     /* 스크롤바 */
     ::-webkit-scrollbar{width:10px}
     ::-webkit-scrollbar-thumb{background:linear-gradient(var(--neon), rgba(0,255,170,.3)); border-radius:999px}
+  .btn.small{padding:8px 10px; font-size:.85rem}
   </style>
 </head>
 <body>
@@ -185,6 +186,10 @@
     <section class="footer">
       <div class="foot-note">© <span id="yr"></span> H4CK3R MODE · built with <span style="color:var(--neon)">sj.exe</span></div>
       <div class="mini">Tip: Press <b>`</b> (backtick) to toggle the matrix rain.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="captureWallpaper('desktop')">Save as Wallpaper 16:9</button>
+        <button class="btn" onclick="captureWallpaper('phone')">Save as Wallpaper 9:16</button>
+      </div>
     </section>
   </main>
 
@@ -273,6 +278,43 @@
     function alertBox(msg){
       alert(msg);
     }
+
+    // ===== Wallpaper Capture =====
+    async function captureWallpaper(kind='desktop'){
+      const target = {desktop: {w:2560, h:1440}, phone:{w:1080, h:1920}}[kind] || {w:2560, h:1440};
+      const node = document.documentElement;
+      const options = {
+        backgroundColor: '#0a0f0d',
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        scale: 2
+      };
+      try{
+        const srcCanvas = await html2canvas(node, options);
+        const out = document.createElement('canvas');
+        out.width = target.w; out.height = target.h;
+        const oc = out.getContext('2d');
+        oc.fillStyle = '#0a0f0d';
+        oc.fillRect(0,0,target.w,target.h);
+        const sW = srcCanvas.width, sH = srcCanvas.height;
+        const scale = Math.max(target.w/sW, target.h/sH);
+        const drawW = sW*scale, drawH = sH*scale;
+        const dx = (target.w - drawW)/2; const dy = (target.h - drawH)/2;
+        oc.drawImage(srcCanvas, dx, dy, drawW, drawH);
+        const a = document.createElement('a');
+        const label = kind==='phone' ? 'wallpaper-9x16' : 'wallpaper-16x9';
+        a.download = label + '.png';
+        a.href = out.toDataURL('image/png');
+        a.click();
+      }catch(e){
+        alert('Capture failed: ' + e.message);
+      }
+    }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </body>
 </html>
