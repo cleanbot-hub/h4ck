@@ -340,7 +340,7 @@
       const ovText = document.getElementById('ov-text');
       const ovBar = document.getElementById('ov-bar');
       ov.style.display = 'flex';
-      ovText.textContent = 'attck… 0%';
+      ovText.textContent = 'attack… 0%';
       ovBar.style.width = '0%';
 
       const node = document.documentElement;
@@ -395,7 +395,7 @@
           gif.addFrame(out, {copy:true, delay});
 
           const pct = Math.round(((i+1)/totalFrames)*100);
-          ovText.textContent = `Attck… ${pct}%`;
+          ovText.textContent = `Attack… ${pct}%`;
           ovBar.style.width = pct + '%';
           await new Promise(r=>setTimeout(r, delay));
         }
