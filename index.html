@@ -110,6 +110,11 @@
     ::-webkit-scrollbar{width:10px}
     ::-webkit-scrollbar-thumb{background:linear-gradient(var(--neon), rgba(0,255,170,.3)); border-radius:999px}
   .btn.small{padding:8px 10px; font-size:.85rem}
+  .btn.small{padding:8px 10px; font-size:.85rem}
+    .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); z-index:50}
+    .overlay .box{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(0,255,170,.25); color:var(--text); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); min-width:260px; text-align:center}
+    .overlay .bar{height:8px; background:rgba(0,255,170,.15); border-radius:999px; overflow:hidden; margin-top:10px}
+    .overlay .bar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--neon), rgba(0,255,170,.4));}
   </style>
 </head>
 <body>
@@ -189,8 +194,17 @@
       <div class="btn-row">
         <button class="btn" onclick="captureWallpaper('desktop')">Save as Wallpaper 16:9</button>
         <button class="btn" onclick="captureWallpaper('phone')">Save as Wallpaper 9:16</button>
+        <button class="btn" onclick="captureGif('desktop',5,12)">Record GIF 5s (16:9)</button>
+        <button class="btn" onclick="captureGif('phone',5,12)">Record GIF 5s (9:16)</button>
       </div>
     </section>
+
+    <div class="overlay" id="overlay" role="alert" aria-live="polite">
+      <div class="box">
+        <div id="ov-text">Recording GIF… 0%</div>
+        <div class="bar"><i id="ov-bar"></i></div>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -314,7 +328,83 @@
         alert('Capture failed: ' + e.message);
       }
     }
+
+    // ===== Animated GIF Capture =====
+    async function captureGif(kind='desktop', seconds=5, fps=12){
+      const target = {desktop: {w:1280, h:720}, phone:{w:540, h:960}}[kind] || {w:1280, h:720};
+      const totalFrames = Math.max(1, Math.floor(seconds * fps));
+      const delay = Math.round(1000 / fps);
+
+      // overlay UI
+      const ov = document.getElementById('overlay');
+      const ovText = document.getElementById('ov-text');
+      const ovBar = document.getElementById('ov-bar');
+      ov.style.display = 'flex';
+      ovText.textContent = 'Recording GIF… 0%';
+      ovBar.style.width = '0%';
+
+      const node = document.documentElement;
+      const h2cOptions = {
+        backgroundColor: '#0a0f0d',
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        scale: 1.5
+      };
+
+      // Prepare compositor canvas with target aspect
+      const out = document.createElement('canvas');
+      out.width = target.w; out.height = target.h;
+      const oc = out.getContext('2d');
+
+      const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js',
+        width: target.w,
+        height: target.h
+      });
+
+      try{
+        for(let i=0;i<totalFrames;i++){
+          // capture DOM → src
+          const src = await html2canvas(node, h2cOptions);
+          // compose to target aspect using cover fit
+          oc.fillStyle = '#0a0f0d';
+          oc.fillRect(0,0,target.w,target.h);
+          const sW = src.width, sH = src.height;
+          const scale = Math.max(target.w/sW, target.h/sH);
+          const drawW = sW*scale, drawH = sH*scale;
+          const dx = (target.w - drawW)/2; const dy = (target.h - drawH)/2;
+          oc.drawImage(src, dx, dy, drawW, drawH);
+          gif.addFrame(out, {copy:true, delay});
+
+          const pct = Math.round(((i+1)/totalFrames)*100);
+          ovText.textContent = `Recording GIF… ${pct}%`;
+          ovBar.style.width = pct + '%';
+          await new Promise(r=>setTimeout(r, delay));
+        }
+
+        ovText.textContent = 'Encoding GIF…';
+        gif.on('finished', function(blob){
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const label = kind==='phone' ? 'hacker-wall-9x16' : 'hacker-wall-16x9';
+          a.download = label + `-${seconds}s-${fps}fps.gif`;
+          a.href = url; a.click();
+          setTimeout(()=>{ URL.revokeObjectURL(url); ov.style.display='none'; }, 500);
+        });
+        gif.render();
+      }catch(e){
+        ov.style.display='none';
+        alert('GIF capture failed: ' + e.message);
+      }
+    }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 </body>
 </html>
