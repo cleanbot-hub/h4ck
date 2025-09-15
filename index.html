@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>H4CK3R MODE</title>
+  <meta name="description" content="Hacker-style landing page. Pure HTML/CSS/JS. No frameworks." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0a0f0d;/* 아주 어두운 배경 */
+      --panel:#0f1714;/* 패널 배경 */
+      --panel-2:#0c1411;/* 패널 배경 강조 */
+      --grid:rgba(0,255,170,0.04);
+      --text:#e8fff5;
+      --sub:#9deccf;
+      --neon:#00ff9c;
+      --alert:#ff4d4d;
+      --shadow:0 10px 30px rgba(0,255,170,0.08), 0 0 0 1px rgba(0,255,170,0.08) inset;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color:var(--text);
+      background:radial-gradient(1000px 600px at 80% -10%, rgba(0,255,170,0.08), transparent 60%),
+                 radial-gradient(800px 500px at -10% 120%, rgba(0,255,170,0.08), transparent 60%),
+                 var(--bg);
+      overflow-x:hidden;
+    }
+    /* 매트릭스 레인 캔버스 */
+    #matrix{
+      position:fixed; inset:0; z-index:-1; opacity:.25; filter:contrast(120%);
+    }
+    /* 그리드 오버레이 */
+    .grid-overlay{position:fixed; inset:0; background-image:linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px); background-size:36px 36px; pointer-events:none; z-index:-1}
+
+    header{
+      position:sticky; top:0; z-index:5;
+      backdrop-filter:blur(8px);
+      background:linear-gradient(180deg, rgba(10,15,13,0.85), rgba(10,15,13,0.35));
+      border-bottom:1px solid rgba(0,255,170,0.1);
+    }
+    .nav{
+      max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:16px;
+      padding:14px 18px;
+    }
+    .brand{display:flex; align-items:center; gap:12px; letter-spacing:.12em}
+    .logo{width:28px; aspect-ratio:1; border-radius:8px; background:conic-gradient(from 180deg, rgba(0,255,170,.9), rgba(0,255,170,.35), rgba(0,255,170,.9)); box-shadow:0 0 24px rgba(0,255,170,.6) inset, 0 0 22px rgba(0,255,170,.35)}
+    .brand b{color:var(--neon)}
+    .nav .spacer{flex:1}
+    .chip{border:1px solid rgba(0,255,170,.2); padding:6px 10px; border-radius:999px; color:var(--sub); background:linear-gradient(180deg, rgba(15,23,20,.8), rgba(15,23,20,.2)); font-size:.85rem}
+
+    .wrap{max-width:1200px; margin:0 auto; padding:28px 18px 80px}
+    .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:22px; align-items:stretch;}
+    @media (max-width: 920px){.hero{grid-template-columns:1fr;}}
+
+    .panel{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(0,255,170,.12); border-radius:18px; box-shadow:var(--shadow);}
+    .panel .head{display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px dashed rgba(0,255,170,.14); color:var(--sub); font-size:.9rem}
+    .dots{display:flex; gap:8px}
+    .dot{width:10px; height:10px; border-radius:50%; background:rgba(0,255,170,.25); box-shadow:0 0 10px rgba(0,255,170,.4)}
+
+    .terminal{padding:16px;}
+    .prompt{color:var(--neon)}
+    .caret{display:inline-block; width:8px; height:1.1em; background:var(--neon); vertical-align:-2px; animation:blink 1s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    .btn-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+    .btn{
+      position:relative; isolation:isolate;
+      border:1px solid rgba(0,255,170,.25);
+      background:linear-gradient(180deg, rgba(13,22,19,.8), rgba(13,22,19,.4));
+      color:var(--text); padding:10px 14px; border-radius:12px;
+      cursor:pointer; user-select:none; font-weight:600; letter-spacing:.03em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 10px 22px rgba(0,255,170,.06);
+      transition:transform .08s ease, box-shadow .2s ease, border-color .2s;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:rgba(0,255,170,.45); box-shadow:0 12px 28px rgba(0,255,170,.12)}
+    .btn:active{transform:translateY(1px)}
+
+    .grid{
+      margin-top:22px; display:grid; gap:18px; grid-template-columns:repeat(3,1fr);
+    }
+    @media (max-width: 1024px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width: 640px){.grid{grid-template-columns:1fr}}
+
+    .card{padding:16px; position:relative}
+    .card h3{margin:0 0 6px; color:var(--neon); font-size:1rem}
+    .meta{font-size:.85rem; color:var(--sub)}
+
+    .footer{margin-top:26px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .foot-note{font-size:.85rem; color:var(--sub)}
+    .mini{font-size:.8rem; color:#7fdab9}
+
+    /* 글리치 타이틀 */
+    .glitch{position:relative; font-size:clamp(26px, 4vw, 40px); font-weight:800; letter-spacing:.08em; line-height:1.2; text-transform:uppercase;}
+    .glitch::before, .glitch::after{
+      content:attr(data-text); position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen;
+    }
+    .glitch::before{transform:translate(2px,-1px); text-shadow:-1px 0 var(--neon); clip-path:polygon(0 2%, 100% 2%, 100% 34%, 0 34%);
+      animation:gl1 2.5s infinite linear alternate}
+    .glitch::after{transform:translate(-2px,1px); text-shadow:1px 0 #00d4ff; clip-path:polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+      animation:gl2 2.8s infinite linear alternate}
+    @keyframes gl1{0%{transform:translate(0,0)} 50%{transform:translate(2px,-1px)} 100%{transform:translate(-1px,1px)}}
+    @keyframes gl2{0%{transform:translate(0,0)} 50%{transform:translate(-2px,1px)} 100%{transform:translate(1px,-1px)}}
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar{width:10px}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(var(--neon), rgba(0,255,170,.3)); border-radius:999px}
+  </style>
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <header>
+    <nav class="nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div><b>H4CK3R</b>&nbsp;MODE</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="chip">status: <b style="color:var(--neon)">online</b></span>
+      <span class="chip" id="clock" aria-label="현재 시각">--:--:--</span>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <article class="panel">
+        <div class="head"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div> /dev/terminal — readonly</div>
+        <div class="terminal" id="term" aria-live="polite" aria-label="터미널">
+          <div class="glitch" data-text="access granted">access granted</div>
+          <pre id="type"></pre>
+          <div class="btn-row" aria-label="빠른 실행">
+            <button class="btn" onclick="alertBox('Initiating trace... (jk)')">TRACE</button>
+            <button class="btn" onclick="alertBox('Deploying payload... Done ✅')">DEPLOY</button>
+            <button class="btn" onclick="alertBox('Bruteforce canceled — too noisy.')">BRUTEFORCE</button>
+            <button class="btn" onclick="alertBox('Ping 127.0.0.1 — pong!')">PING</button>
+            <button class="btn" onclick="alertBox('System lockdown engaged. 🔒')">LOCKDOWN</button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="panel">
+        <div class="head"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div> network — dashboard</div>
+        <div class="terminal">
+          <h3 style="margin:0 0 8px; color:var(--neon)">Quick Links</h3>
+          <div class="btn-row">
+            <button class="btn" onclick="alertBox('🚨 Intrusion detected on port 8080')">ALERT</button>
+            <button class="btn" onclick="alertBox('📁 Opening secret folder (just kidding)')">SECRETS</button>
+            <button class="btn" onclick="alertBox('🛰 Uplink established to satellite #42')">UPLINK</button>
+          </div>
+          <p class="mini" style="margin-top:10px">버튼을 눌러 경고(alert) 팝업을 확인하세요.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="panel card">
+        <h3>system.scan()</h3>
+        <p class="meta">health: <b style="color:var(--neon)">OK</b> · latency: 12ms</p>
+        <div class="btn-row">
+          <button class="btn" onclick="alertBox('Scanning perimeter… Nothing suspicious found.')">RUN</button>
+        </div>
+      </div>
+      <div class="panel card">
+        <h3>crypto.status()</h3>
+        <p class="meta">entropy: high · cipher: chacha20</p>
+        <div class="btn-row">
+          <button class="btn" onclick="alertBox('Generating keys… 🔑 Done!')">GENERATE</button>
+        </div>
+      </div>
+      <div class="panel card">
+        <h3>ai.assistant()</h3>
+        <p class="meta">model: gpt · temp: 0.3</p>
+        <div class="btn-row">
+          <button class="btn" onclick="alertBox('🤖 Hello, human.')">SAY HI</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="footer">
+      <div class="foot-note">© <span id="yr"></span> H4CK3R MODE · built with <span style="color:var(--neon)">HTML + JS</span></div>
+      <div class="mini">Tip: Press <b>`</b> (backtick) to toggle the matrix rain.</div>
+    </section>
+  </main>
+
+  <script>
+    // ===== Matrix rain =====
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    let w, h, cols, drops, rainEnabled = true;
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      cols = Math.floor(w / 16);
+      drops = Array(cols).fill(0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function draw(){
+      if(!rainEnabled) return;
+      ctx.fillStyle = 'rgba(10,15,13,0.09)';
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#00ff9c';
+      ctx.font = '14px JetBrains Mono, monospace';
+      for(let i=0;i<drops.length;i++){
+        const txt = String.fromCharCode(0x30A0 + Math.random()*96);
+        ctx.fillText(txt, i*16, drops[i]*16);
+        if(drops[i]*16 > h && Math.random() > 0.975){
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Toggle with backtick
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === '`'){
+        rainEnabled = !rainEnabled;
+        if(rainEnabled) draw();
+      }
+    });
+
+    // ===== Clock =====
+    const clock = document.getElementById('clock');
+    function pad(n){return String(n).padStart(2,'0')}
+    function tick(){
+      const d = new Date();
+      clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+    setInterval(tick, 1000); tick();
+
+    // ===== Footer year =====
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // ===== Typewriter (fake terminal logs) =====
+    const typeEl = document.getElementById('type');
+    const lines = [
+      '[OK] Connected to 127.0.0.1',
+      '[OK] Handshake complete',
+      '[INFO] Loading modules: net, fs, crypto',
+      '[WARN] Low noise budget — switching to stealth mode',
+      '[OK] Access granted — welcome, operator',
+      'user@localhost:~$ echo "hello world"',
+      'hello world',
+    ];
+    let li = 0, ci = 0;
+    function typer(){
+      if(li >= lines.length){
+        typeEl.insertAdjacentHTML('beforeend', '\n<span class="prompt">user@localhost</span>:~$ <span class="caret"></span>');
+        return;
+      }
+      const current = lines[li];
+      typeEl.textContent += current[ci] || '';
+      ci++;
+      if(ci > current.length){
+        typeEl.textContent += '\n'; li++; ci = 0;
+        setTimeout(typer, 450); return;
+      }
+      setTimeout(typer, 28 + Math.random()*40);
+    }
+    typer();
+
+    // ===== Alert helpers =====
+    function alertBox(msg){
+      alert(msg);
+    }
+  </script>
+</body>
+</html>
